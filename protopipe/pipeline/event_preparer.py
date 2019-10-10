@@ -219,6 +219,9 @@ class EventPreparer:
             # Compute impact parameter in tilt system
             run_array_direction = event.mcheader.run_array_direction
             az, alt = run_array_direction[0], run_array_direction[1]
+            alt = np.arcsin(np.sin(alt))
+            # alt = min(alt, np.pi/2.*u.rad)
+            # alt = max(alt, 0*u.rad)
 
             ground_frame = GroundFrame()
 

@@ -52,11 +52,13 @@ def main():
     if args.infile_list:
         filenamelist = []
         for f in args.infile_list:
+            print(f)
             filenamelist += glob("{}/{}".format(args.indir, f))
         filenamelist.sort()
     else:
         raise ValueError("don't know which input to use...")
 
+    print("list: ", filenamelist)
     if not filenamelist:
         print("no files found; check indir: {}".format(args.indir))
         exit(-1)
@@ -163,6 +165,8 @@ def main():
 
     # Telescopes in analysis
     allowed_tels = set(prod3b_tel_ids(array, site=site))
+    allowed_tels = {1,2,3,4}
+    allowed_tels = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19}
 
     for i, filename in enumerate(filenamelist):
 

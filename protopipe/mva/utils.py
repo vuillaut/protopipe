@@ -46,18 +46,20 @@ def make_cut_list(cuts):
 def split_train_test(ds, train_fraction, feature_name_list, target_name):
     # Get the run id corresponding to 70% of the statistics
     # (and sort to avoid troubles...)
-    obs_ids = np.sort(pd.unique(ds['obs_id']))
+    obs_ids = np.sort(pd.unique(ds['event_id']))
     max_train_obs_idx = int(train_fraction * len(obs_ids))
+    print(max_train_obs_idx)
     run_max_train = obs_ids[max_train_obs_idx]
+    print(run_max_train)
 
     # Split the data for training
-    data_train = ds.query('obs_id < {}'.format(run_max_train))
+    data_train = ds.query('event_id < {}'.format(run_max_train))
     y_train = data_train[target_name]
     X_train = data_train[feature_name_list]
     data_train = data_train.set_index(['obs_id', 'event_id'])
 
     # Split the data for training
-    data_test = ds.query('obs_id >= {}'.format(run_max_train))
+    data_test = ds.query('event_id >= {}'.format(run_max_train))
     y_test = data_test[target_name]
     X_test = data_test[feature_name_list]
     data_test = data_test.set_index(['obs_id', 'event_id'])

@@ -12,6 +12,8 @@ from protopipe.pipeline.utils import load_config
 from protopipe.perf import (CutsOptimisation, CutsDiagnostic, CutsApplicator,
                             IrfMaker, SensitivityMaker)
 
+import ctaplot
+
 
 def main():
     # Read arguments
@@ -36,7 +38,7 @@ def main():
     cfg = load_config(args.config_file)
 
     # Add obs. time in configuration file
-    str_obs_time = args.obs_time.split()
+    str_obs_time = args.obs_time.split('*')
     cfg['analysis']['obs_time'] = {'value': float(str_obs_time[0]), 'unit': str(str_obs_time[-1])}
 
     # Create output directory if necessary
@@ -57,15 +59,27 @@ def main():
     evt_dict = dict()  # Contain DL2 file for each type of particle
     for particle in particles:
         # template looks like dl2_{}_{}_merged.h5
-        infile = os.path.join(indir, template_input_file.format(args.mode, particle))
-        evt_dict[particle] = pd.read_hdf(infile, key='reco_events')
+        # infile = os.path.join(indir, template_input_file.format(args.mode, particle))
+        infile = os.path.join(indir, 'dl2_{}.h5'.format(particle))
+        key='dl2/event/telescope/parameters/LST_LSTCam'
+        # key='reco_events'
+        evt_dict[particle] = pd.read_hdf(infile, key=key)
+        data = evt_dict[particle]
 
-    # Apply offset cut to proton and electron
-    for particle in ['electron', 'proton']:
-        # print('Initial stat: {} {}'.format(len(evt_dict[particle]), particle))
-        evt_dict[particle] = evt_dict[particle].query('offset <= {}'.format(
-            cfg['particle_information'][particle]['offset_cut'])
-        )
+        # **** log energy from lstchain
+        # data.reco_energy = 10**(data.reco_energy-3)
+        # data.mc_energy = 10**(data.mc_energy-3)
+
+        data['xi'] = pd.Series(ctaplot.angular_separation_altaz(data.reco_alt, data.reco_az, data.mc_alt, data.mc_az),
+                               index=data.index)
+
+
+    # # Apply offset cut to proton and electron
+    # for particle in ['electron', 'proton']:
+    #     # print('Initial stat: {} {}'.format(len(evt_dict[particle]), particle))
+    #     evt_dict[particle] = evt_dict[particle].query('offset <= {}'.format(
+    #         cfg['particle_information'][particle]['offset_cut'])
+    #     )
 
     # Add required data in configuration file for future computation
     for particle in particles:

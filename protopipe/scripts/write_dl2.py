@@ -31,8 +31,8 @@ def main():
 
     # Argument parser
     parser = make_argparser()
-    parser.add_argument("--regressor_dir", default="./", help="regressors directory")
-    parser.add_argument("--classifier_dir", default="./", help="regressors directory")
+    parser.add_argument("--regressor_dir", default="estimators/energy_regressor", help="regressors directory")
+    parser.add_argument("--classifier_dir", default="estimators/gamma_hadron_classifier", help="regressors directory")
     parser.add_argument(
         "--force_tailcut_for_extended_cleaning",
         type=str2bool,
@@ -165,6 +165,8 @@ def main():
         reco_core_y = tb.Float32Col(dflt=np.nan, pos=20)
         mc_core_x = tb.Float32Col(dflt=np.nan, pos=21)
         mc_core_y = tb.Float32Col(dflt=np.nan, pos=22)
+        mc_alt = tb.Float32Col(dflt=np.nan, pos=23)
+        mc_az = tb.Float32Col(dflt=np.nan, pos=23)
 
     reco_outfile = tb.open_file(
         mode="w",
@@ -192,6 +194,9 @@ def main():
 
     # Telescopes in analysis
     allowed_tels = set(prod3b_tel_ids(array, site=site))
+    allowed_tels = {1,2,3,4}
+    # allowed_tels = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}
+
     for i, filename in enumerate(filenamelist):
 
         source = event_source(
@@ -275,7 +280,7 @@ def main():
                         # Features to be fed in the classifier
                         features_img = np.array(
                             [
-                                np.log10(reco_energy),
+                                # np.log10(reco_energy),
                                 moments.width.value,
                                 moments.length.value,
                                 moments.skewness,
@@ -331,10 +336,12 @@ def main():
                 reco_event["NTels_reco_mst"] = n_tels["MST_MST_NectarCam"]
                 reco_event["NTels_reco_sst"] = n_tels["SST"] # will change
                 reco_event["reco_energy"] = reco_energy
-                reco_event["reco_alt"] = alt.to("deg").value
-                reco_event["reco_az"] = az.to("deg").value
-                reco_event["offset"] = offset.to("deg").value
-                reco_event["xi"] = xi.to("deg").value
+                reco_event["reco_alt"] = alt.to("rad").value
+                reco_event["reco_az"] = az.to("rad").value
+                reco_event["offset"] = offset.to("rad").value
+                reco_event["xi"] = xi.to("rad").value
+                reco_event["mc_alt"] = event.mc.alt.to("rad").value
+                reco_event["mc_az"] = event.mc.az.to("rad").value
                 reco_event["h_max"] = h_max.to("m").value
                 reco_event["reco_core_x"] = reco_core_x.to("m").value
                 reco_event["reco_core_y"] = reco_core_y.to("m").value
